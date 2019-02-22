@@ -129,6 +129,6 @@ setInterval( () => {
 	io.emit('game', [x,y] ); //update?
 }, dt * 1000);
  
-server.listen(5000, function () {
+server.listen(process.env.PORT || 5000, function () {
   console.log(`Listening on ${server.address().port}`);
 });
