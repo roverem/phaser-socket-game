@@ -5,7 +5,7 @@ var io = require('socket.io').listen(server);
 var p2 = require('p2');
 
 var players = {};
-var dt = 1/10;
+var dt = 1/30;
 var boxShape;
 var boxBody;
 var world;
