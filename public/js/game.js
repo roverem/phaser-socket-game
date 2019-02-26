@@ -87,7 +87,7 @@ function create() {
 		}, null, self);
 	});
 	
-	this.socket.on('game', function(boxData){
+	this.socket.on('gameDataUpdate', function(boxData){
 		
 		var x = boxData[0];
 		var y = boxData[1];
