@@ -4,7 +4,7 @@ var server = require('http').Server(app);
 var io = require('socket.io').listen(server);
 
 const User = require('./user.js');
-const Game = require('./game.js');
+const GameWorld = require('./gameworld.js');
 
 app.use(express.static(__dirname + '/public'));
 
@@ -14,7 +14,7 @@ app.get('/', function (req, res) {
 
 
 var dt = 1/5;
-var game;
+var gameworld;
 
 io.on('connection', (socket) => {
 	console.log('user connected', socket.id);
@@ -23,21 +23,21 @@ io.on('connection', (socket) => {
 	//let user = new User(socket);
 	//user.log();
 	
-	if (game instanceof Game == false){
+	if (gameworld instanceof GameWorld == false){
 		//TODO: CUANDO SE DESCONECTA EL ÙLTIMO. APAGAR EL WORLD.
-		game = new Game(io);
+		gameworld = new GameWorld(io);
 	}
 	
-	game.connectPlayer(socket);
+	gameworld.connectPlayer(socket);
 	
 	socket.on('disconnect', function(){
-		game.disconnectPlayer(socket.id);
+		gameworld.disconnectPlayer(socket.id);
 	});
 });
 
 setInterval( () => {
-	if ( game instanceof Game ) {
-		game.update(dt);
+	if ( gameworld instanceof GameWorld ) {
+		gameworld.update(dt);
 	}
 }, dt * 1000);
  

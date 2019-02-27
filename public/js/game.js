@@ -24,6 +24,8 @@ function preload() {
 	this.load.image('ship', 'assets/spaceShips_001.png');
 	this.load.image('otherPlayer', 'assets/enemyBlack5.png');
 	this.load.image('star', 'assets/star_gold.png');
+	
+	this.load.image('redCar', 'assets/red-car.bmp');
 }
  
 function create() {
@@ -106,7 +108,7 @@ function create() {
 }
 
 function addPlayer(self, playerInfo) {
-  self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(53, 40);
+  self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'redCar')//.setOrigin(0.5, 0.5).setDisplaySize(53, 40);
   if (playerInfo.team === 'blue') {
     self.ship.setTint(0x0000ff);
   } else {

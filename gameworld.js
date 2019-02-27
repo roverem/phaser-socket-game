@@ -1,24 +1,23 @@
 var p2 = require('p2');
-var p2World;
 
-class GameWorld{
-	constructor(io, dt){
+class Game 
+{
+	constructor(io)
+	{
 		this.io = io;
 		
 		this.players = {};
-		this.dt = dt;
 		
-		p2World = new p2.World({
-			gravity:[0, 10]
-		});
+		this.p2World = new p2.World();
 		
-		this.ready = true;
-		console.log("world created");
+		console.log( "Game instance created" );
 	}
 	
 	connectPlayer(socket)
 	{
-		players[socket.id] = {
+		console.log("Connecting " + socket.id + " player");
+		
+		this.players[socket.id] = {
 			rotation: 0,
 			x: Math.floor(Math.random() * 700) + 50,
 			y: Math.floor(Math.random() * 500) + 50,
@@ -26,29 +25,31 @@ class GameWorld{
 			team: (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue'
 		}
 		
-		//avisar al resto que hay un jugador nuevo.
-		socket.emit('currentPlayers', players);
+		//Le pasa al jugador nuevo, los otros jugadores.
+		socket.emit('currentPlayers', this.players);
 		
-		var xt = Math.floor(Math.random() * 700) + 50;
-		var yt = Math.floor(Math.random() * 500) + 50;
+		//avisa al jugador ingresante el estado del juego
+		socket.emit("gameInitialState", "avisa al jugador ingresante el estado del juego");
 		
-		socket.emit('gameDataUpdate', [xt, yt]/*, score, starLocation, etc*/);
-		
-		socket.broadcast.emit('newPlayer', players[socket.id]);
+		//avisa a todos los jugadores del nuevo jugador.
+		socket.broadcast.emit('newPlayer', this.players[socket.id]);
 	}
 	
 	disconnectPlayer(playerId)
 	{
-		delete players[playerId];
+		delete this.players[playerId];
+		//avisa a todos los jugadores que se fue uno
 		this.io.emit('disconnect', playerId);
 	}
 	
 	update(dt)
 	{
-		p2World.step(dt);
+		console.log("updating game world on " + dt);
 		
-		io.emit('gameUpdate' /*, playerCoords*/)
+		//this.p2World.step(dt);
+		this.io.emit('gameUpdate'/*, playersData*/);
 	}
+	
 }
 
-module.exports = GameWorld;
+module.exports = Game;
