@@ -34,21 +34,20 @@ function create() {
 	
 	this.socket = io();
 	this.otherPlayers = this.physics.add.group();
-	
 	this.graphics = this.add.graphics();
 	
-	this.socket.on('currentPlayers', function (players) {
-		Object.keys(players).forEach(function (id) {
-			if (players[id].playerId === self.socket.id) {
-				addPlayer(self, players[id]);
-			} else {
-				addOtherPlayers(self, players[id]);
-			}
-		});
-	});
 	
+	this.allPlayers = this.physics.add.group();
+	
+	this.socket.on('currentPlayers', function (players) {
+		for (let playerId in players){
+			let player = players[playerId];
+			addPlayer(self, player);
+		}
+	});
+
 	this.socket.on('newPlayer', function(playerInfo){
-		addOtherPlayers(self, playerInfo);
+		addPlayer(self, playerInfo);
 	});
 	
 	this.socket.on('disconnect', function(playerId){
@@ -59,102 +58,70 @@ function create() {
 		});
 	});
 	
-	this.socket.on('playerMoved', function (playerInfo) {
-	  self.otherPlayers.getChildren().forEach(function (otherPlayer) {
-		if (playerInfo.playerId === otherPlayer.playerId) {
-		  otherPlayer.setRotation(playerInfo.rotation);
-		  otherPlayer.setPosition(playerInfo.x, playerInfo.y);
+	this.socket.on('gameUpdate', function (players) {
+		//console.log("gameUpdate " + players);
+		//console.log(players[ self.socket.id ]);
+		
+		let allP = self.allPlayers.getChildren();
+		
+		for (let i = 0; i < allP.length; i++)
+		{
+			let playerImage = allP[i];
+			console.log( playerImage.playerId );
+			for (let playerId in players){
+				let player = players[playerId];
+				console.log( "id: " + player[0] + "x: " + player[1] + "| y: " + player[2] );
+				
+				if (playerId == playerImage.playerId){
+					console.log(playerImage.playerId + " updating");
+					playerImage.setPosition(player[1], player[2]);
+				}
+			}
 		}
-	  });
 	});
 	
 	this.cursors = this.input.keyboard.createCursorKeys();
 	
 	let coco = this.add.text(16, 500, "", { fontSize: '32px', fill: '#0000FF' });
 	coco.setText("TESTINGGGGG!");
-	
-	this.blueScoreText = this.add.text(16, 16, '', { fontSize: '32px', fill: '#0000FF' });
-	this.redScoreText = this.add.text(584, 16, '', { fontSize: '32px', fill: '#FF0000' });
-	
-	this.socket.on('scoreUpdate', function(scores){
-		self.blueScoreText.setText('Blue: ' + scores.blue);
-		self.redScoreText.setText('Red: ' + scores.red);
-	});
-	
-	this.socket.on('starLocation', function(starLocation){
-		if (self.star) self.star.destroy();
-		self.star = self.physics.add.image(starLocation.x, starLocation.y, 'star');
-		self.physics.add.overlap(self.ship, self.star, function(){
-			this.socket.emit('starCollected');
-		}, null, self);
-	});
-	
-	this.socket.on('gameDataUpdate', function(boxData){
-		
-		var x = boxData[0];
-		var y = boxData[1];
-		
-		console.log(typeof boxData);
-		console.log(typeof x);
-		console.log(typeof y);
-		
-		self.blueScoreText.setText('box data: ' + x);
-		self.redScoreText.setText('box data: ' + y);
-		self.graphics.clear();
-		self.graphics.lineStyle(2, 0xff0000, 1);
-		self.graphics.fillStyle(0xffff00, 1);
-		self.graphics.fillCircle(x, y, 8);
-	});
 }
 
 function addPlayer(self, playerInfo) {
-  self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'redCar')//.setOrigin(0.5, 0.5).setDisplaySize(53, 40);
-  if (playerInfo.team === 'blue') {
-    self.ship.setTint(0x0000ff);
-  } else {
-    self.ship.setTint(0xff0000);
-  }
-  self.ship.setDrag(100);
-  self.ship.setAngularDrag(100);
-  self.ship.setMaxVelocity(200);
-}
-
-function addOtherPlayers(self, playerInfo) {
-  const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y, 'otherPlayer').setOrigin(0.5, 0.5).setDisplaySize(53, 40);
-  if (playerInfo.team === 'blue') {
-    otherPlayer.setTint(0x0000ff);
-  } else {
-    otherPlayer.setTint(0xff0000);
-  }
-  otherPlayer.playerId = playerInfo.playerId;
-  self.otherPlayers.add(otherPlayer);
+	let playerId = playerInfo[0];
+	let x = playerInfo[1];
+	let y = playerInfo[2];
+	let rotation = playerInfo[3];
+	
+	let playerImage = self.physics.add.image(x, y, 'redCar').setOrigin(0.5, 0.5).setDisplaySize(53, 40);
+	playerImage.playerId = playerId;
+	self.allPlayers.add(playerImage);
 }
  
 function update() {
 	if (this.ship) {
 		
 		if (this.cursors.left.isDown) {
-			this.ship.setAngularVelocity(-150);
+			//this.ship.setAngularVelocity(-150);
 		} else if (this.cursors.right.isDown) {
-			this.ship.setAngularVelocity(150);
+			//this.ship.setAngularVelocity(150);
 		} else {
-			this.ship.setAngularVelocity(0);
+			//this.ship.setAngularVelocity(0);
 		}
   
 		if (this.cursors.up.isDown) {
-			this.physics.velocityFromRotation(this.ship.rotation + 1.5, 100, this.ship.body.acceleration);
+			//this.physics.velocityFromRotation(this.ship.rotation + 1.5, 100, this.ship.body.acceleration);
 		} else {
-			this.ship.setAcceleration(0);
+			//this.ship.setAcceleration(0);
 		}
 		
 		if (this.cursors.space.isDown){
 			this.socket.emit('space');
 		}
   
-		this.physics.world.wrap(this.ship, 5);
+		//this.physics.world.wrap(this.ship, 5);
 		
 		// emit player movement
-		var x = this.ship.x;
+		/*var x = this.ship.x;
 		var y = this.ship.y;
 		var r = this.ship.rotation;
 		if (this.ship.oldPosition && (x !== this.ship.oldPosition.x || y !== this.ship.oldPosition.y || r !== this.ship.oldPosition.rotation)) {
@@ -166,6 +133,6 @@ function update() {
 		  x: this.ship.x,
 		  y: this.ship.y,
 		  rotation: this.ship.rotation
-		};
+		};*/
 	}
 }
