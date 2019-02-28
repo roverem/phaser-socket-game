@@ -13,7 +13,7 @@ app.get('/', function (req, res) {
 });
 
 
-var dt = 1/5;
+var dt = 1/30;
 var gameworld;
 
 io.on('connection', (socket) => {
@@ -32,6 +32,10 @@ io.on('connection', (socket) => {
 	
 	socket.on('disconnect', function(){
 		gameworld.disconnectPlayer(socket.id);
+	});
+	
+	socket.on('input', function(inputData){
+		gameworld.inputRecording(socket.id, inputData);
 	});
 });
 

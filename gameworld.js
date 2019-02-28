@@ -6,12 +6,12 @@ class Game
 	{
 		this.io = io;
 		
-		//ESTOY USANDO 2 PORQUE UNO LO USO PARA ENVIAR A LOS JUGADORES.
+		//ESTOY USANDO 2 PORQUE UNO LO USO PARA ENVIAR POR EMIT A LOS JUGADORES.
 		this._players = {};
 		this.players = {};
 		
 		this.p2World = new p2.World({
-			gravity : [0,-3],
+			gravity : [0, 0],
 		});
 		
 		console.log( "Game instance created" );
@@ -28,15 +28,19 @@ class Game
 			//team: (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue',
 			
 			playerId: socket.id,
-			shape: new p2.Circle({radius:2}),
-			body: new p2.Body({ mass: 1, position:[50,500], /*rotation: 180, */angularVelocity:1})
+			shape: new p2.Box({ width: 96, height: 96 }),
+			body: new p2.Body({ mass: 10, position:[50,500], /*rotation: 180, */angularVelocity:1}),
+			input: {}
 		}
 		
+		player.body.damping = player.body.angularDamping = 0;
 		player.body.addShape(player.shape);
 		this.p2World.addBody(player.body);
 		
 		this._players[socket.id] = player;
 		
+		
+		//OPTIMIZACION PARA NO MANDAR TODA LA DATA DEL OBJETO COMPLEJO DE FISICA.
 		this.players[socket.id] = [ 
 			player.playerId,
 			player.body.position[0],
@@ -63,9 +67,16 @@ class Game
 		this.io.emit('disconnect', playerId);
 	}
 	
+	inputRecording(playerId, inputData){
+		//console.log(inputData + " pressed by " + playerId);
+		this._players[playerId].input = inputData;
+	}
+	
 	update(dt)
 	{
-		console.log("updating game world on " + dt + " for " + this.players);
+		//console.log("updating game world on " + dt + " for " + this.players);
+		
+		this.updatePhysics();
 		
 		this.p2World.step(dt);
 		
@@ -74,12 +85,40 @@ class Game
 		this.io.emit('gameUpdate', this.players);
 	}
 	
+	updatePhysics(){
+		for (let playerId in this._players)
+		{
+			let player = this._players[playerId];
+			if (player.input.left){
+				console.log(playerId + " pressed left");
+				player.body.velocity[0] = -30;
+			} else if (player.input.right){
+				console.log(playerId + " pressed right");
+				player.body.velocity[0] = 30;
+			} else {
+				//player.body.angularVelocity = 0;
+			}
+			
+			if (player.input.up){
+				console.log(playerId + " pressed UP");
+				player.body.applyForceLocal([0,10]);
+			}
+			if (player.input.down){
+				console.log(playerId + " pressed DOWN");
+				player.body.applyForceLocal([0,-10]);
+			}
+			
+			player.input = {};
+		}
+		
+	}
+	
 	updatePublicPlayers(){
 		for (let playerId in this._players){
 			let _player = this._players[playerId];
 			this.players[playerId][1] = _player.body.position[0];
 			this.players[playerId][2] = _player.body.position[1];
-			//player.body.rotation,
+			this.players[playerId][3] = _player.body.angle;
 		}
 	}
 }
