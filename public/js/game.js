@@ -74,6 +74,7 @@ function create() {
 				if (playerId == playerImage.playerId){
 					//console.log(playerImage.playerId + " updating");
 					playerImage.setPosition(player[1], player[2]);
+					playerImage.setRotation(player[3]);
 				}
 			}
 		}
@@ -94,7 +95,7 @@ function addPlayer(self, playerInfo) {
 	let y = playerInfo[2];
 	let rotation = playerInfo[3];
 	
-	let playerImage = self.physics.add.image(x, y, 'redCar').setOrigin(0.5, 0.5).setDisplaySize(53, 40);
+	let playerImage = self.physics.add.image(x, y, 'redCar').setDisplaySize(96, 96);//.setOrigin(0.5, 0.5).setDisplaySize(53, 40);
 	playerImage.playerId = playerId;
 	playerImage.setRotation(rotation);
 	self.allPlayers.add(playerImage);

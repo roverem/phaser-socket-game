@@ -29,7 +29,7 @@ class Game
 			
 			playerId: socket.id,
 			shape: new p2.Box({ width: 96, height: 96 }),
-			body: new p2.Body({ mass: 10, position:[50,500], /*rotation: 180, */angularVelocity:1}),
+			body: new p2.Body({ mass: 1, position:[50,500], /*rotation: 180, */angularVelocity:1}),
 			input: {}
 		}
 		
@@ -45,9 +45,11 @@ class Game
 			player.playerId,
 			player.body.position[0],
 			player.body.position[1],
-			player.body.rotation,
+			player.body.angle,
 			'red'
 		]
+		
+		this.updatePublicPlayers();
 		
 		//Le pasa al jugador nuevo, los otros jugadores.
 		socket.emit('currentPlayers', this.players);
@@ -75,14 +77,12 @@ class Game
 	update(dt)
 	{
 		//console.log("updating game world on " + dt + " for " + this.players);
+		this.updatePublicPlayers();
+		this.io.emit('gameUpdate', this.players);
 		
 		this.updatePhysics();
 		
 		this.p2World.step(dt);
-		
-		this.updatePublicPlayers()
-		
-		this.io.emit('gameUpdate', this.players);
 	}
 	
 	updatePhysics(){
@@ -91,21 +91,21 @@ class Game
 			let player = this._players[playerId];
 			if (player.input.left){
 				console.log(playerId + " pressed left");
-				player.body.velocity[0] = -30;
+				player.body.velocity[0] = -100;
 			} else if (player.input.right){
 				console.log(playerId + " pressed right");
-				player.body.velocity[0] = 30;
+				player.body.velocity[0] = 100;
 			} else {
 				//player.body.angularVelocity = 0;
 			}
 			
 			if (player.input.up){
 				console.log(playerId + " pressed UP");
-				player.body.applyForceLocal([0,10]);
+				player.body.velocity[1] = -100;
 			}
 			if (player.input.down){
 				console.log(playerId + " pressed DOWN");
-				player.body.applyForceLocal([0,-10]);
+				player.body.velocity[1] = 100;
 			}
 			
 			player.input = {};
