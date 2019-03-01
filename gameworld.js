@@ -29,11 +29,11 @@ class Game
 			
 			playerId: socket.id,
 			shape: new p2.Box({ width: 96, height: 96 }),
-			body: new p2.Body({ mass: 1, position:[50,500], /*rotation: 180, */angularVelocity:1}),
+			body: new p2.Body({ mass: 1, position:[50,500], /*rotation: 180, */angularVelocity:0}),
 			input: {}
 		}
 		
-		player.body.damping = player.body.angularDamping = 0;
+		//player.body.damping = player.body.angularDamping = 0;
 		player.body.addShape(player.shape);
 		this.p2World.addBody(player.body);
 		
@@ -85,6 +85,15 @@ class Game
 		this.p2World.step(dt);
 	}
 	
+	// If the body is out of space bounds, warp it to the other side
+	warp(body){
+		var p = body.position;
+		if(p[0] >  800) p[0] = 0;
+		if(p[1] >  600) p[1] = 0;
+		if(p[0] < 0) p[0] =  800;
+		if(p[1] < 0) p[1] =  600;
+	}
+	
 	updatePhysics(){
 		for (let playerId in this._players)
 		{
@@ -107,6 +116,8 @@ class Game
 				console.log(playerId + " pressed DOWN");
 				player.body.velocity[1] = 100;
 			}
+			
+			this.warp(player.body);
 			
 			player.input = {};
 		}
