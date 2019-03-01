@@ -81,7 +81,7 @@ function create() {
 	});
 	
 	this.cursors = this.input.keyboard.createCursorKeys();
-	this.inputEvent = this.time.addEvent({delay: 500, callback: sendInput, callbackScope: this, loop: true });
+	this.inputEvent = this.time.addEvent({delay: 300, callback: sendInput, callbackScope: this, loop: true });
 	this.inputData = {left: false, right: false, up: false, down: false};
 	
 	let coco = this.add.text(16, 500, "", { fontSize: '32px', fill: '#0000FF' });
@@ -98,6 +98,8 @@ function addPlayer(self, playerInfo) {
 	let playerImage = self.physics.add.image(x, y, 'redCar').setDisplaySize(96, 96);//.setOrigin(0.5, 0.5).setDisplaySize(53, 40);
 	playerImage.playerId = playerId;
 	playerImage.setRotation(rotation);
+	if (self.socket.id == playerId) playerImage.setTint(0x00ffff);
+	
 	self.allPlayers.add(playerImage);
 }
 

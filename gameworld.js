@@ -98,28 +98,36 @@ class Game
 		for (let playerId in this._players)
 		{
 			let player = this._players[playerId];
+			
+			player.body.velocity[0] *= 0.98;
+			player.body.velocity[1] *= 0.98;
+			
+			let speed = 150;
+			
 			if (player.input.left){
 				console.log(playerId + " pressed left");
-				player.body.velocity[0] = -100;
+				player.body.velocity[0] = -speed;
 			} else if (player.input.right){
 				console.log(playerId + " pressed right");
-				player.body.velocity[0] = 100;
+				player.body.velocity[0] = speed;
 			} else {
 				//player.body.angularVelocity = 0;
 			}
 			
 			if (player.input.up){
 				console.log(playerId + " pressed UP");
-				player.body.velocity[1] = -100;
+				player.body.velocity[1] = -speed;
 			}
 			if (player.input.down){
 				console.log(playerId + " pressed DOWN");
-				player.body.velocity[1] = 100;
+				player.body.velocity[1] = speed;
 			}
 			
 			this.warp(player.body);
 			
 			player.input = {};
+			
+			
 		}
 		
 	}
