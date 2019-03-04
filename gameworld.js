@@ -39,7 +39,8 @@ class Game
 		
 		this._players[socket.id] = player;
 		
-		
+		//hasta acá, mas o menos, funciona como un asteroids. Lo dejo como momento en el repo para virar el proyecto hacia otro lado.
+
 		//OPTIMIZACION PARA NO MANDAR TODA LA DATA DEL OBJETO COMPLEJO DE FISICA.
 		this.players[socket.id] = [ 
 			player.playerId,
