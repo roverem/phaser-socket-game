@@ -99,8 +99,8 @@ class Game
 		{
 			let player = this._players[playerId];
 			
-			player.body.velocity[0] *= 0.98;
-			player.body.velocity[1] *= 0.98;
+			//player.body.velocity[0] *= 0.98;
+			//player.body.velocity[1] *= 0.98;
 			
 			let speed = 150;
 			
