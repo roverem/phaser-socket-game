@@ -33,10 +33,18 @@ io.on('connection', (socket) => {
 	socket.on('disconnect', function(){
 		gameworld.disconnectPlayer(socket.id);
 	});
-	
-	socket.on('input', function(inputData){
-		gameworld.inputRecording(socket.id, inputData);
+
+	socket.on('onKeyDown', function(direction){
+		gameworld.onKeyDown(socket.id, direction);
 	});
+
+	socket.on('onKeyUp', function(direction){
+		gameworld.onKeyUp(socket.id, direction);
+	});
+	
+	/*socket.on('input', function(inputData){
+		gameworld.inputRecording(socket.id, inputData);
+	});*/
 });
 
 setInterval( () => {

@@ -20,21 +20,37 @@ class Game
 	connectPlayer(socket)
 	{
 		console.log("Connecting " + socket.id + " player");
-		
+		let shape = new p2.Box({ width: 96, height: 96 });
+		let body = new p2.Body({ mass: 0.3, position:[50,500], /*rotation: 180, angularVelocity:0*/});
+		let vehicle = new p2.TopDownVehicle(body);
+
+		let frontWheel = vehicle.addWheel({
+			localPosition: [48, 96] // front
+		});
+		//frontWheel.setSideFriction(4);
+		let backWheel = vehicle.addWheel({
+			localPosition: [0, 0] // back
+		});
+		//backWheel.setSideFriction(3);
+
 		let player = {
-			/*rotation: 180,
-			x: Math.floor(Math.random() * 700) + 50,
-			y: Math.floor(Math.random() * 500) + 50,*/
-			//team: (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue',
-			
 			playerId: socket.id,
-			shape: new p2.Box({ width: 96, height: 96 }),
-			body: new p2.Body({ mass: 1, position:[50,500], /*rotation: 180, */angularVelocity:0}),
-			input: {}
+			shape: shape,
+			body: body,
+			vehicle: vehicle,
+			frontWheel: frontWheel,
+			backWheel: backWheel,
+			input: {
+				left: 0,
+				right: 0,
+				up: 0,
+				down: 0
+			}
 		}
 		
 		//player.body.damping = player.body.angularDamping = 0;
 		player.body.addShape(player.shape);
+		player.vehicle.addToWorld(this.p2World);
 		this.p2World.addBody(player.body);
 		
 		this._players[socket.id] = player;
@@ -48,6 +64,14 @@ class Game
 			player.body.angle,
 			'red'
 		]
+
+		/*socket.on('onKeyDown', function(keyDown){
+			this.onKeyDown( this._players[socket.id], keyDown );
+		});
+
+		socket.on('onKeyUp', function(keyUp){
+			this.onKeyUp( this._players[socket.id], keyUp );
+		});*/
 		
 		this.updatePublicPlayers();
 		
@@ -73,25 +97,51 @@ class Game
 		//console.log(inputData + " pressed by " + playerId);
 		this._players[playerId].input = inputData;
 	}
+
+	onKeyDown(playerId, direction) {
+		let player = this._players[playerId];
+		player.input[direction] = 1;
+		this.onInputChange(player);
+	}
+
+	onKeyUp(playerId, direction) {
+		let player = this._players[playerId];
+		player.input[direction] = 0;
+		this.onInputChange(player);
+	}
+
+	onInputChange(player){
+		let speed = 70;
+		//let turnSpeed = 1500;
+		let maxSteer = Math.PI / 7;
+
+		player.frontWheel.steerValue = maxSteer * (player.input.left - player.input.right );
+		player.backWheel.engineForce = player.input.up * speed;
+
+		console.log(player.playerId + "steerValue: " + player.frontWheel.steerValue);
+		console.log(player.playerId + "engineForce: " + player.backWheel.engineForce);
+
+		player.backWheel.setBrakeForce(0);
+		if(player.input.down){
+			if(player.backWheel.getSpeed() > 0.1){
+				// Moving forward - add some brake force to slow down
+				player.backWheel.setBrakeForce(5);
+			} else {
+				// Moving backwards - reverse the engine force
+				player.backWheel.setBrakeForce(0);
+				player.backWheel.engineForce = -speed/2;
+			}
+		}
+	}
 	
 	update(dt)
 	{
+		this.updatePhysics();
 		//console.log("updating game world on " + dt + " for " + this.players);
 		this.updatePublicPlayers();
 		this.io.emit('gameUpdate', this.players);
-		
-		this.updatePhysics();
-		
+				
 		this.p2World.step(dt);
-	}
-	
-	// If the body is out of space bounds, warp it to the other side
-	warp(body){
-		var p = body.position;
-		if(p[0] >  800) p[0] = 0;
-		if(p[1] >  600) p[1] = 0;
-		if(p[0] < 0) p[0] =  800;
-		if(p[1] < 0) p[1] =  600;
 	}
 	
 	updatePhysics(){
@@ -102,32 +152,31 @@ class Game
 			//player.body.velocity[0] *= 0.98;
 			//player.body.velocity[1] *= 0.98;
 			
-			let speed = 150;
-			
-			if (player.input.left){
+			/*if (player.input.left){
 				console.log(playerId + " pressed left");
-				player.body.velocity[0] = -speed;
+				//player.body.velocity[0] = -speed;
 			} else if (player.input.right){
 				console.log(playerId + " pressed right");
-				player.body.velocity[0] = speed;
+				//player.body.velocity[0] = speed;
 			} else {
 				//player.body.angularVelocity = 0;
+				//player.frontWheel.steerValue = 0;
 			}
 			
 			if (player.input.up){
 				console.log(playerId + " pressed UP");
-				player.body.velocity[1] = -speed;
+				//player.body.velocity[1] = -speed;
 			}
+
 			if (player.input.down){
 				console.log(playerId + " pressed DOWN");
-				player.body.velocity[1] = speed;
-			}
+				//player.body.velocity[1] = speed;
+			}*/
 			
+			//console.log(player.playerId + " - steerValue: " + player.frontWheel.steerValue);
+			//console.log(player.playerId + " - engineForce: " + player.backWheel.engineForce);
+
 			this.warp(player.body);
-			
-			player.input = {};
-			
-			
 		}
 		
 	}
@@ -139,6 +188,15 @@ class Game
 			this.players[playerId][2] = _player.body.position[1];
 			this.players[playerId][3] = _player.body.angle;
 		}
+	}
+
+	// If the body is out of space bounds, warp it to the other side
+	warp(body){
+		var p = body.position;
+		if(p[0] >  800) p[0] = 0;
+		if(p[1] >  600) p[1] = 0;
+		if(p[0] < 0) p[0] =  800;
+		if(p[1] < 0) p[1] =  600;
 	}
 }
 

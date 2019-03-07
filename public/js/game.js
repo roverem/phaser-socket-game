@@ -81,8 +81,40 @@ function create() {
 	});
 	
 	this.cursors = this.input.keyboard.createCursorKeys();
-	this.inputEvent = this.time.addEvent({delay: 300, callback: sendInput, callbackScope: this, loop: true });
-	this.inputData = {left: false, right: false, up: false, down: false};
+	//this.inputEvent = this.time.addEvent({delay: 100, callback: sendInput, callbackScope: this, loop: true });
+	this.input.keyboard.on('keyup-UP',function (event) {
+        send_OnKeyUp(self, "up");
+	});
+	
+	this.input.keyboard.on('keyup-RIGHT',function (event) {
+        send_OnKeyUp(self, "right");
+	});
+	
+	this.input.keyboard.on('keyup-LEFT',function (event) {
+        send_OnKeyUp(self, "left");
+	});
+
+	this.input.keyboard.on('keyup-DOWN',function (event) {
+        send_OnKeyUp(self, "down");
+	});
+	
+	this.input.keyboard.on('keydown-UP',function (event) {
+        send_OnKeyDown(self, "up");
+	});
+	
+	this.input.keyboard.on('keydown-RIGHT',function (event) {
+        send_OnKeyDown(self, "right");
+	});
+	
+	this.input.keyboard.on('keydown-LEFT',function (event) {
+        send_OnKeyDown(self, "left");
+	});
+	
+	this.input.keyboard.on('keydown-DOWN',function (event) {
+        send_OnKeyDown(self, "down");
+    });
+
+	this.inputData = {left: 0, right: 0, up: 0, down: 0};
 	
 	let coco = this.add.text(16, 500, "", { fontSize: '32px', fill: '#0000FF' });
 	coco.setText("TESTINGGGGG!");
@@ -104,16 +136,30 @@ function addPlayer(self, playerInfo) {
 }
 
 function sendInput(){
-	console.log("Sending Input");
+	console.log("Sending Input || left: " + this.inputData.left, "- right: " + this.inputData.right + "-  up: " + this.inputData.up + " - down: " + this.inputData.down);
 	
 	this.socket.emit('input', this.inputData);
 	
 	this.inputData = {left: false, right: false, up: false, down: false};
 }
 
+function send_OnKeyDown(self, direction){
+	console.log("sending on key down: " + direction);
+	self.socket.emit("onKeyDown", direction);
+}
+
+function send_OnKeyUp(self, direction){
+	console.log("sending on key up: " + direction);
+	self.socket.emit("onKeyUp", direction);
+}
+
 function update() {
+
+
+	
+
 	//guardo lo que se haya apretado solamente
-	if (this.cursors.left.isDown) {
+	/*if (this.cursors.left.isDown) {
 		this.inputData.left = true;
 	}
 	if (this.cursors.right.isDown) {
@@ -130,7 +176,7 @@ function update() {
 	
 	if (this.cursors.down.isDown){
 		this.inputData.down = true;
-	}
+	}*/
 	
-	console.log(this.inputData);
+	//console.log(this.inputData);
 }
